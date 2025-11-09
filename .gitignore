@@ -1,0 +1,11 @@
+# .gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pdb
+*.joblib
+*.csv
+.env
+.venv/
+env.yml
+condaenv.*
