@@ -78,6 +78,7 @@ def make_xgb_params_es():
         tree_method="hist",       # fast histogram algorithm
         device="cuda",            # GPU; change to "cpu" if needed
         eval_metric="auc",        # we monitor AUC during early stopping
+        early_stopping_rounds=200,# stop if no AUC improvement for 200 rounds
         # regularization knobs worth trying later:
         # reg_lambda=1.0,
         # reg_alpha=0.0,
@@ -122,7 +123,6 @@ def train_early_stop(X: pd.DataFrame, y: pd.Series):
     clf.fit(
         X_tr, y_tr,
         eval_set=[(X_va, y_va)],
-        early_stopping_rounds=200,
         verbose=50
     )
 
