@@ -1,5 +1,12 @@
-xgboost>=2.0
+# Core ML libraries
+xgboost==3.1.1        # GPU-enabled; early_stopping_rounds set via constructor
 scikit-learn>=1.4
 pandas>=2.2
 numpy>=1.26
 joblib>=1.4
+
+# Visualization for the Jupyter notebook
+matplotlib>=3.8
+
+# (Optional but recommended for interactive exploration)
+jupyterlab>=4.1
