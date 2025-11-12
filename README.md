@@ -1,12 +1,14 @@
-# XGBoost Starter (GPU/CPU Auto Inference)
+# XGBoost Starter (GPU-Ready + Auto GPU/CPU Inference)
 
-> **Purpose:** Demonstrates a reproducible, beginner‑friendly workflow for GPU‑accelerated XGBoost classification with automatic GPU/CPU detection during both training and inference.
+> **Purpose:**  
+> A reproducible, beginner-friendly machine learning project demonstrating **GPU-accelerated gradient boosting with XGBoost**, featuring **Early Stopping (ES)**, **5-Fold Cross-Validation (CV)**, and **automatic GPU/CPU detection** during both training and inference.  
+> Designed for **Windows 11 + WSL 2 + RTX 4070 SUPER**, but runs on any CUDA-capable or CPU-only system.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1️⃣ Clone and Create Environment
+### 1️⃣ Clone and Create Environment
 
 ```bash
 git clone https://github.com/FlosMume/xgb-starter.git
@@ -16,8 +18,7 @@ conda env create -f env.yml
 conda activate xgb-starter
 ```
 
-Verify GPU access in WSL 2:
-
+Verify GPU availability in WSL 2:
 ```bash
 nvidia-smi
 ```
@@ -29,105 +30,142 @@ pip install --upgrade --extra-index-url https://pypi.nvidia.com xgboost==3.1.1
 
 ---
 
-### 2️⃣ Train the Model
+### 2️⃣ Train the Model
 
-**Early Stopping (default):**
+**Early Stopping (default)**  
+Trains with a train/validation split, reports **AUC + F1**, and saves `xgb_model.joblib`:
 
 ```bash
 python train.py
 ```
 
-**Cross‑Validation:**
+**Cross-Validation**  
+Performs 5-fold CV (AUC + F1) and retrains on all data:
 
 ```bash
 python train.py --mode cv
 ```
 
-Both create `xgb_model.joblib` — a serialized bundle with the model and feature names.
-
 ---
 
-### 3️⃣ Predict with GPU/CPU Auto Detection
+### 3️⃣ Predict on New Data (with Auto GPU/CPU)
 
-The new `predict.py` automatically decides:
-- If model → `device="cuda"` **and** CuPy is available → GPU inference  
-- Otherwise → CPU inference (no warnings)
+`predict.py` automatically detects your environment:
+- If model → `device="cuda"` **and** CuPy is installed → GPU inference  
+- Otherwise → CPU inference (no warnings)
 
 ```bash
 python predict.py your_data.csv
 ```
 
-Output example:
-
+Example output:
 ```
 ✅ Wrote predictions.csv (threshold=0.50, inference=GPU)
 ```
 
-To adjust threshold:
+Adjust threshold:
 ```bash
 python predict.py your_data.csv --threshold 0.35
 ```
 
+Output file → `predictions.csv`:
+| prediction | proba |
+|-------------|--------|
+| 1 | 0.973 |
+| 0 | 0.114 |
+
 ---
 
-## ⚙️ Environment Summary
+## 📁 Project Structure
 
-| Component | Example Version |
+```
+xgb-starter/
+├── train.py              # training script (ES + CV, GPU support)
+├── predict.py            # prediction script (auto GPU/CPU inference)
+├── xgb_starter_demo.ipynb# richly commented Jupyter demo notebook
+├── env.yml               # Conda environment definition
+├── requirements.txt      # optional pip requirements
+└── README.md             # this guide
+```
+
+---
+
+## ⚙️ Environment Details
+
+| Component | Example Version |
 |------------|----------------|
-| Python | 3.11 |
-| CUDA | 12.8 |
-| XGBoost | 3.1.1 (GPU build) |
-| CuPy | Optional (only for GPU inference) |
-| Matplotlib | 3.8 + (for plots in notebook) |
-| scikit‑learn | 1.4 + |
-| pandas | 2.2 + |
+| OS | Windows 11 + WSL 2 (Ubuntu 22.04) |
+| GPU | NVIDIA RTX 4070 SUPER |
+| CUDA | 12.8 (runtime toolkit) |
+| Python | 3.11 |
+| XGBoost | 3.1.1 (GPU build) |
+| CuPy | Optional (for GPU inference) |
+| scikit-learn | 1.4 + |
+| pandas | 2.2 + |
+| matplotlib | 3.8 + (for notebook plots) |
 
 ---
 
-## 🧠 Key Features
+## 🧠 Key Features
 
-### Training (`train.py`)
-- Two modes: **Early Stopping** and **5‑fold Cross‑Validation**
+### 🏋️‍♂️ Training (`train.py`)
+- Dual modes: **Early Stopping** and **5-Fold Cross-Validation**
 - Reports **AUC** and **F1**
 - GPU training (`device="cuda"`) or CPU fallback
-- Saves `xgb_model.joblib`
+- Saves `xgb_model.joblib` (bundle: model + feature names)
+- Reproducible random seed control
 
-### Inference (`predict.py`)
-- Loads model + feature names safely
-- Checks for missing/extra columns
-- Auto‑detects GPU and sets predictor accordingly
-- Converts data to **CuPy** array when on GPU
-- Writes `predictions.csv` with `prediction` and `proba` columns
+### 🔍 Inference (`predict.py`)
+- Loads model and validates schema
+- Auto-detects GPU/CPU and sets predictor accordingly
+- Converts data to **CuPy** arrays when using GPU
+- Safe CSV I/O and clear warnings
+- Outputs `predictions.csv` with probabilities and class labels
 
-### Notebook (`xgb_starter_demo.ipynb`)
-- Richly commented example with ROC curve and Feature Importance plots
-- Perfect for GitHub visualization
+### 📓 Notebook (`xgb_starter_demo.ipynb`)
+- Interactive, richly commented step-by-step demo
+- Shows ROC Curve and Feature-Importance plots
+- Uses identical workflow as scripts for reproducibility
+- Ideal for GitHub visualization (GitHub renders outputs)
 
 ---
 
 ## ⚠️ Notes
 
-- Do **not** push `.joblib` files to GitHub — they are binary artifacts.  
-  Already ignored via `.gitignore`.
+- Do **not** push `.joblib` files to GitHub — binary artifacts are large and non-portable.  
+  `.gitignore` already handles this.
 - CuPy installation (optional for GPU prediction):  
   ```bash
   pip install cupy-cuda12x
-  # or conda install -c conda-forge cupy
+  # or
+  conda install -c conda-forge cupy
   ```
-- To silence device mismatch warnings manually: set  
+- To manually force CPU inference and silence warnings:
   ```python
   model.set_params(predictor="cpu_predictor")
   ```
-  in `predict.py`.
+- For hyperparameter tuning, extend with [`Optuna`](https://optuna.org/) or `sklearn.model_selection.GridSearchCV`.
+
+---
+
+## 💡 Tips for Beginners
+- Open `train.py` to see commented examples of Early Stopping and Cross-Validation.  
+- Open `predict.py` to learn how to handle schema mismatch and device selection.  
+- The notebook visualizes the same processes in an interactive way.
 
 ---
 
 ## 📚 References
-
-- [XGBoost Documentation](https://xgboost.readthedocs.io/en/stable/)
-- [CuPy Documentation](https://docs.cupy.dev/en/stable/)
-- [scikit‑learn Metrics Guide](https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics)
+- [XGBoost Documentation](https://xgboost.readthedocs.io/en/stable/)  
+- [CuPy Documentation](https://docs.cupy.dev/en/stable/)  
+- [LightGBM Documentation](https://lightgbm.readthedocs.io/en/stable/)  
+- [scikit-learn Metrics Guide](https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics)
 
 ---
 
-© 2025 FlosMume. MIT License.
+© 2025 FlosMume. MIT License.
+
+---
+
+📦 **Summary:**  
+This project provides a complete GPU-ready XGBoost pipeline—from environment setup to training, evaluation, auto-inference, and visualization—ideal for learning, portfolio demos, and benchmarks.
